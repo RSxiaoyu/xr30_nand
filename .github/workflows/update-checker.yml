@@ -19,41 +19,40 @@ env:
 on:
   workflow_dispatch:
   schedule:
-    - cron: 0 */18 * * *
+    - cron: 0 12 * * *
 
 jobs:
   check:
     runs-on: ubuntu-latest
 
     steps:
-
     - name: Get Commit Hash
       id: getHash
       run: |
-        git clone --depth 1 $REPO_URL -b $REPO_BRANCH .
-        echo "commitHash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+        commitHash=$(git ls-remote $REPO_URL $REPO_BRANCH | awk '{print $1}')
+        echo "commitHash=$commitHash" >> $GITHUB_OUTPUT
 
     - name: Compare Commit Hash
       id: cacheHash
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: .commitHash
-        key: commitHash_${{ steps.getHash.outputs.commitHash }}
+        key: HEAD-${{ steps.getHash.outputs.commitHash }}
 
     - name: Save New Commit Hash
       if: steps.cacheHash.outputs.cache-hit != 'true'
       run: |
-        echo ${{ steps.getHash.outputs.commitHash }} | tee .commitHash
+        echo ${{ steps.getHash.outputs.commitHash }} > .commitHash
 
     - name: Trigger build
       if: steps.cacheHash.outputs.cache-hit != 'true'
-      uses: peter-evans/repository-dispatch@v2
+      uses: peter-evans/repository-dispatch@v3
       with:
-        token: ${{ github.token }}
+        token: ${{ secrets.GITHUB_TOKEN }}
         event-type: Source Code Update
 
     - name: Delete workflow runs
-      uses: Mattraks/delete-workflow-runs@v2
+      uses: Mattraks/delete-workflow-runs@main
       with:
         retain_days: 0
-        keep_minimum_runs: 2
+        keep_minimum_runs: 1
