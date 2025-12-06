@@ -140,10 +140,7 @@ jobs:
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
         echo "release_tag=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
-        echo "## [🚀同步上游更新：](https://github.com/padavanonly/immortalwrt-mt798x-6.6)" > release.txt
-        cd openwrt
-        git log --pretty=format:"- [%h] %s (%cr)" -n 5 >> ../release.txt
-        cd ..
+        echo "[🚀同步上游更新](https://github.com/padavanonly/immortalwrt-mt798x-6.6)" > release.txt
         echo "status=success" >> $GITHUB_OUTPUT
 
     - name: Upload firmware to release
